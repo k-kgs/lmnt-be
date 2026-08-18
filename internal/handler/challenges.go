@@ -2,9 +2,11 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
 	kmw "kayam-be/internal/middleware"
@@ -70,4 +72,58 @@ func (h *ChallengeHandler) MyChallenges(w http.ResponseWriter, r *http.Request) 
 	}
 
 	writeJSON(w, http.StatusOK, rows)
+}
+
+// Leave is the user-initiated counterpart to auto-disqualification — either
+// path lands a user_challenge in a non-active state, which the checkin
+// service's ErrNotActiveParticipant guard then enforces.
+func (h *ChallengeHandler) Leave(w http.ResponseWriter, r *http.Request) {
+	userID, ok := kmw.UserIDFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, errUnauthorized)
+		return
+	}
+
+	var userChallengeID pgtype.UUID
+	if err := userChallengeID.Scan(chi.URLParam(r, "id")); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	result, err := h.Queries.LeaveUserChallenge(r.Context(), repository.LeaveUserChallengeParams{
+		ID:     userChallengeID,
+		UserID: userID,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			// Either it's not this user's, doesn't exist, or is already
+			// left/disqualified — the WHERE clause covers all three, and
+			// they should all read the same to the caller.
+			writeError(w, http.StatusConflict, errNotActiveOrNotYours)
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, result)
+}
+
+// MySummary is the user-level "progress and growth" view — lifetime totals
+// across every challenge the user has ever joined, complementing the
+// single-challenge trend/adherence endpoints in insights.go.
+func (h *ChallengeHandler) MySummary(w http.ResponseWriter, r *http.Request) {
+	userID, ok := kmw.UserIDFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, errUnauthorized)
+		return
+	}
+
+	row, err := h.Queries.UserSummary(r.Context(), userID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, row)
 }

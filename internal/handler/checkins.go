@@ -45,6 +45,8 @@ func (h *CheckinHandler) Create(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusBadRequest, err)
 		case errors.Is(err, service.ErrAlreadyCheckedIn):
 			writeError(w, http.StatusConflict, err)
+		case errors.Is(err, service.ErrNotActiveParticipant):
+			writeError(w, http.StatusConflict, err)
 		default:
 			writeError(w, http.StatusInternalServerError, err)
 		}

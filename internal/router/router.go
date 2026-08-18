@@ -44,15 +44,18 @@ func New(h Handlers, queries *repository.Queries) http.Handler {
 		r.Get("/config", h.Config.Get)
 		r.Post("/auth/login", h.Auth.Login)
 		r.Get("/challenges/{id}/leaderboard", h.Community.Leaderboard)
+		r.Get("/challenges/{id}/analytics", h.Community.Analytics) // aggregate/anonymized, no auth needed
 
 		// authenticated
 		r.Group(func(r chi.Router) {
 			r.Use(kmw.RequireAuth(queries))
 
 			r.Post("/challenges/{id}/join", h.Challenge.Join)
+			r.Post("/user-challenges/{id}/leave", h.Challenge.Leave)
 			r.Get("/user-challenges", h.Challenge.MyChallenges)
 			r.Get("/user-challenges/{id}/trend", h.Insight.Trend)
 			r.Get("/user-challenges/{id}/adherence", h.Insight.Adherence)
+			r.Get("/me/summary", h.Challenge.MySummary)
 
 			r.Post("/checkins", h.Checkin.Create)
 			r.Post("/uploads/request", h.Upload.RequestURL)

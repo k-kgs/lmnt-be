@@ -7,14 +7,18 @@ INSERT INTO verticals (key, label, icon, input_schema) VALUES
 ('diet', 'Diet / Food', '🥗', '[{"key":"meal","type":"select","label":"Meal","options":["breakfast","lunch","dinner","snack"]},{"key":"photo","type":"photo","label":"Photo"}]')
 ON CONFLICT (key) DO NOTHING;
 
-INSERT INTO challenges (title, vertical_id, influencer_handle, member_count, difficulty_stat, is_template)
-SELECT '75-Day Reading Streak', id, '@bookinfluencer', 1234, 'only 8% finish', true FROM verticals WHERE key = 'reading'
+-- disqualify_after_missed_days: only set on challenges whose own framing implies
+-- real stakes (Reading, Fitness). Left NULL for Weight/Diet — auto-eliminating
+-- someone over a body-related measure runs against the product's anti-guilt
+-- stance, so those stay non-punitive until a real Freeze Days mechanic exists.
+INSERT INTO challenges (title, vertical_id, influencer_handle, difficulty_stat, is_template, disqualify_after_missed_days)
+SELECT '75-Day Reading Streak', id, '@bookinfluencer', 'only 8% finish', true, 3 FROM verticals WHERE key = 'reading'
 UNION ALL
-SELECT '30-Day Gym Streak', id, '@fitwithrahul', 3102, 'top 3% get free coaching', true FROM verticals WHERE key = 'fitness'
+SELECT '30-Day Gym Streak', id, '@fitwithrahul', 'top 3% get free coaching', true, 2 FROM verticals WHERE key = 'fitness'
 UNION ALL
-SELECT '12-Week Weight Challenge', id, '@fitwithrahul', 890, 'avg loss 4.2kg', true FROM verticals WHERE key = 'weight'
+SELECT '12-Week Weight Challenge', id, '@fitwithrahul', 'avg loss 4.2kg', true, NULL FROM verticals WHERE key = 'weight'
 UNION ALL
-SELECT '21-Day Clean Eating', id, '@nutribyneha', 642, 'new this week', true FROM verticals WHERE key = 'diet';
+SELECT '21-Day Clean Eating', id, '@nutribyneha', 'new this week', true, NULL FROM verticals WHERE key = 'diet';
 
 INSERT INTO redemption_items (type, title, coin_cost, metadata, active) VALUES
 ('voucher', '20% off — Decathlon', 300, '{"brand":"Decathlon"}', true),

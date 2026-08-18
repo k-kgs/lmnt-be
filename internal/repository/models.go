@@ -11,14 +11,14 @@ import (
 )
 
 type Challenge struct {
-	ID               pgtype.UUID        `json:"id"`
-	Title            string             `json:"title"`
-	VerticalID       pgtype.UUID        `json:"vertical_id"`
-	InfluencerHandle *string            `json:"influencer_handle"`
-	MemberCount      int32              `json:"member_count"`
-	DifficultyStat   *string            `json:"difficulty_stat"`
-	IsTemplate       bool               `json:"is_template"`
-	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	ID                        pgtype.UUID        `json:"id"`
+	Title                     string             `json:"title"`
+	VerticalID                pgtype.UUID        `json:"vertical_id"`
+	InfluencerHandle          *string            `json:"influencer_handle"`
+	DifficultyStat            *string            `json:"difficulty_stat"`
+	IsTemplate                bool               `json:"is_template"`
+	CreatedAt                 pgtype.Timestamptz `json:"created_at"`
+	DisqualifyAfterMissedDays *int32             `json:"disqualify_after_missed_days"`
 }
 
 type Checkin struct {
@@ -74,12 +74,14 @@ type User struct {
 }
 
 type UserChallenge struct {
-	ID          pgtype.UUID        `json:"id"`
-	UserID      pgtype.UUID        `json:"user_id"`
-	ChallengeID pgtype.UUID        `json:"challenge_id"`
-	CustomGoal  []byte             `json:"custom_goal"`
-	Status      string             `json:"status"`
-	JoinedAt    pgtype.Timestamptz `json:"joined_at"`
+	ID             pgtype.UUID        `json:"id"`
+	UserID         pgtype.UUID        `json:"user_id"`
+	ChallengeID    pgtype.UUID        `json:"challenge_id"`
+	CustomGoal     []byte             `json:"custom_goal"`
+	Status         string             `json:"status"`
+	JoinedAt       pgtype.Timestamptz `json:"joined_at"`
+	LeftAt         pgtype.Timestamptz `json:"left_at"`
+	DisqualifiedAt pgtype.Timestamptz `json:"disqualified_at"`
 }
 
 type Vertical struct {

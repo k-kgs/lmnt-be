@@ -24,9 +24,18 @@ type CreateUserChallengeParams struct {
 	CustomGoal  []byte      `json:"custom_goal"`
 }
 
-func (q *Queries) CreateUserChallenge(ctx context.Context, arg CreateUserChallengeParams) (UserChallenge, error) {
+type CreateUserChallengeRow struct {
+	ID          pgtype.UUID        `json:"id"`
+	UserID      pgtype.UUID        `json:"user_id"`
+	ChallengeID pgtype.UUID        `json:"challenge_id"`
+	CustomGoal  []byte             `json:"custom_goal"`
+	Status      string             `json:"status"`
+	JoinedAt    pgtype.Timestamptz `json:"joined_at"`
+}
+
+func (q *Queries) CreateUserChallenge(ctx context.Context, arg CreateUserChallengeParams) (CreateUserChallengeRow, error) {
 	row := q.db.QueryRow(ctx, createUserChallenge, arg.UserID, arg.ChallengeID, arg.CustomGoal)
-	var i UserChallenge
+	var i CreateUserChallengeRow
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
@@ -38,9 +47,21 @@ func (q *Queries) CreateUserChallenge(ctx context.Context, arg CreateUserChallen
 	return i, err
 }
 
+const disqualifyUserChallenge = `-- name: DisqualifyUserChallenge :exec
+UPDATE user_challenges
+SET status = 'disqualified', disqualified_at = now()
+WHERE id = $1 AND status = 'active'
+`
+
+func (q *Queries) DisqualifyUserChallenge(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, disqualifyUserChallenge, id)
+	return err
+}
+
 const getUserChallengeWithVertical = `-- name: GetUserChallengeWithVertical :one
 SELECT uc.id, uc.user_id, uc.challenge_id, uc.status,
-       c.vertical_id, v.key AS vertical_key, v.input_schema
+       c.vertical_id, v.key AS vertical_key, v.input_schema,
+       c.disqualify_after_missed_days
 FROM user_challenges uc
 JOIN challenges c ON c.id = uc.challenge_id
 JOIN verticals v ON v.id = c.vertical_id
@@ -48,15 +69,19 @@ WHERE uc.id = $1
 `
 
 type GetUserChallengeWithVerticalRow struct {
-	ID          pgtype.UUID     `json:"id"`
-	UserID      pgtype.UUID     `json:"user_id"`
-	ChallengeID pgtype.UUID     `json:"challenge_id"`
-	Status      string          `json:"status"`
-	VerticalID  pgtype.UUID     `json:"vertical_id"`
-	VerticalKey string          `json:"vertical_key"`
-	InputSchema json.RawMessage `json:"input_schema"`
+	ID                        pgtype.UUID     `json:"id"`
+	UserID                    pgtype.UUID     `json:"user_id"`
+	ChallengeID               pgtype.UUID     `json:"challenge_id"`
+	Status                    string          `json:"status"`
+	VerticalID                pgtype.UUID     `json:"vertical_id"`
+	VerticalKey               string          `json:"vertical_key"`
+	InputSchema               json.RawMessage `json:"input_schema"`
+	DisqualifyAfterMissedDays *int32          `json:"disqualify_after_missed_days"`
 }
 
+// Includes status (so the checkin service can reject non-active
+// participants) and disqualify_after_missed_days (so it can auto-transition
+// status when a check-in reveals a gap past that challenge's threshold).
 func (q *Queries) GetUserChallengeWithVertical(ctx context.Context, id pgtype.UUID) (GetUserChallengeWithVerticalRow, error) {
 	row := q.db.QueryRow(ctx, getUserChallengeWithVertical, id)
 	var i GetUserChallengeWithVerticalRow
@@ -68,7 +93,33 @@ func (q *Queries) GetUserChallengeWithVertical(ctx context.Context, id pgtype.UU
 		&i.VerticalID,
 		&i.VerticalKey,
 		&i.InputSchema,
+		&i.DisqualifyAfterMissedDays,
 	)
+	return i, err
+}
+
+const leaveUserChallenge = `-- name: LeaveUserChallenge :one
+UPDATE user_challenges
+SET status = 'left', left_at = now()
+WHERE id = $1 AND user_id = $2 AND status = 'active'
+RETURNING id, status, left_at
+`
+
+type LeaveUserChallengeParams struct {
+	ID     pgtype.UUID `json:"id"`
+	UserID pgtype.UUID `json:"user_id"`
+}
+
+type LeaveUserChallengeRow struct {
+	ID     pgtype.UUID        `json:"id"`
+	Status string             `json:"status"`
+	LeftAt pgtype.Timestamptz `json:"left_at"`
+}
+
+func (q *Queries) LeaveUserChallenge(ctx context.Context, arg LeaveUserChallengeParams) (LeaveUserChallengeRow, error) {
+	row := q.db.QueryRow(ctx, leaveUserChallenge, arg.ID, arg.UserID)
+	var i LeaveUserChallengeRow
+	err := row.Scan(&i.ID, &i.Status, &i.LeftAt)
 	return i, err
 }
 

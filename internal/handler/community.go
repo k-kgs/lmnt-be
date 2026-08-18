@@ -32,3 +32,24 @@ func (h *CommunityHandler) Leaderboard(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusOK, rows)
 }
+
+// Analytics is the group-level "consistency and growth" view for one
+// challenge: live participant counts, average streak, today's check-in
+// rate, and retention. See internal/repository/queries/analytics.sql for
+// the important caveat that retention is a snapshot approximation, not
+// true day-by-day cohort tracking.
+func (h *CommunityHandler) Analytics(w http.ResponseWriter, r *http.Request) {
+	var challengeID pgtype.UUID
+	if err := challengeID.Scan(chi.URLParam(r, "id")); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	row, err := h.Queries.ChallengeAnalytics(r.Context(), challengeID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, row)
+}
