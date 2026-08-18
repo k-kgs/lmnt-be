@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kayam
+      POSTGRES_PASSWORD: kayam
+      POSTGRES_DB: kayam
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kayam -d kayam"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  # Manual/rollback use only (e.g. `make migrate-down`) — the api service
+  # below self-migrates "up" on every boot (internal/migrations/embed.go),
+  # so this service is no longer required for the normal local-dev flow.
+  migrate:
+    image: migrate/migrate:v4.17.1
+    volumes:
+      - ./internal/migrations:/migrations
+    entrypoint:
+      [
+        "migrate",
+        "-path", "/migrations",
+        "-database", "postgres://kayam:kayam@db:5432/kayam?sslmode=disable",
+      ]
+    command: ["up"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgres://kayam:kayam@db:5432/kayam?sslmode=disable
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

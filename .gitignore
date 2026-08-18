@@ -1,0 +1,22 @@
+# Planning/spec docs — not part of the shipped service
+.adlc/
+
+# Local env / secrets
+.env
+.env.local
+*.env
+!.env.example
+
+# Build output
+/kayam-be
+/bin/
+/dist/
+
+# Go
+*.test
+*.out
+
+# OS / editor cruft
+.DS_Store
+.idea/
+.vscode/

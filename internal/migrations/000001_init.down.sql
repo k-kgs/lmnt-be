@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS follows;
+DROP TABLE IF EXISTS redemptions;
+DROP TABLE IF EXISTS redemption_items;
+DROP TABLE IF EXISTS wallet_transactions;
+DROP TABLE IF EXISTS streaks;
+DROP TABLE IF EXISTS checkins;
+DROP TABLE IF EXISTS user_challenges;
+DROP TABLE IF EXISTS challenges;
+DROP TABLE IF EXISTS verticals;
+DROP TABLE IF EXISTS users;
