@@ -12,6 +12,7 @@ import (
 	"kayam-be/internal/repository"
 	"kayam-be/internal/router"
 	"kayam-be/internal/service"
+	"kayam-be/internal/storage"
 )
 
 func main() {
@@ -33,6 +34,11 @@ func main() {
 
 	queries := repository.New(pool)
 
+	presigner, err := storage.NewPresigner(ctx, cfg)
+	if err != nil {
+		log.Fatalf("failed to init storage presigner: %v", err)
+	}
+
 	authService := &service.AuthService{Queries: queries}
 	checkinService := &service.CheckinService{Pool: pool}
 	redemptionService := &service.RedemptionService{Pool: pool}
@@ -46,6 +52,7 @@ func main() {
 		Redemption: &handler.RedemptionHandler{Service: redemptionService, Queries: queries},
 		Insight:    &handler.InsightHandler{Queries: queries},
 		Community:  &handler.CommunityHandler{Queries: queries},
+		Upload:     &handler.UploadHandler{Presigner: presigner},
 	}
 
 	r := router.New(h, queries)

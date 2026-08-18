@@ -21,6 +21,7 @@ type Handlers struct {
 	Redemption *handler.RedemptionHandler
 	Insight    *handler.InsightHandler
 	Community  *handler.CommunityHandler
+	Upload     *handler.UploadHandler
 }
 
 func New(h Handlers, queries *repository.Queries) http.Handler {
@@ -54,6 +55,7 @@ func New(h Handlers, queries *repository.Queries) http.Handler {
 			r.Get("/user-challenges/{id}/adherence", h.Insight.Adherence)
 
 			r.Post("/checkins", h.Checkin.Create)
+			r.Post("/uploads/request", h.Upload.RequestURL)
 
 			r.Get("/wallet", h.Wallet.Get)
 			r.Post("/redemptions", h.Redemption.Create)
