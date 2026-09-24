@@ -14,51 +14,53 @@ import (
 const upsertSurveyResponse = `-- name: UpsertSurveyResponse :one
 INSERT INTO survey_responses (
     client_id, completed, last_screen, track, track_other, pivot_importance, pivot_satisfaction, branch,
-    positive_reason, neutral_reason, negative_reasons, reward_kano,
+    positive_reasons, neutral_reasons, negative_reasons, negative_reason_other, reward_kano,
     monetization, age, gender, email, email_choice, persona_key
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
 ON CONFLICT (client_id) DO UPDATE SET
-    completed          = EXCLUDED.completed,
-    last_screen        = EXCLUDED.last_screen,
-    track              = EXCLUDED.track,
-    track_other        = EXCLUDED.track_other,
-    pivot_importance   = EXCLUDED.pivot_importance,
-    pivot_satisfaction = EXCLUDED.pivot_satisfaction,
-    branch             = EXCLUDED.branch,
-    positive_reason    = EXCLUDED.positive_reason,
-    neutral_reason     = EXCLUDED.neutral_reason,
-    negative_reasons   = EXCLUDED.negative_reasons,
-    reward_kano        = EXCLUDED.reward_kano,
-    monetization       = EXCLUDED.monetization,
-    age                = EXCLUDED.age,
-    gender             = EXCLUDED.gender,
-    email              = EXCLUDED.email,
-    email_choice       = EXCLUDED.email_choice,
-    persona_key        = EXCLUDED.persona_key,
-    updated_at         = now()
+    completed             = EXCLUDED.completed,
+    last_screen           = EXCLUDED.last_screen,
+    track                 = EXCLUDED.track,
+    track_other           = EXCLUDED.track_other,
+    pivot_importance      = EXCLUDED.pivot_importance,
+    pivot_satisfaction    = EXCLUDED.pivot_satisfaction,
+    branch                = EXCLUDED.branch,
+    positive_reasons      = EXCLUDED.positive_reasons,
+    neutral_reasons       = EXCLUDED.neutral_reasons,
+    negative_reasons      = EXCLUDED.negative_reasons,
+    negative_reason_other = EXCLUDED.negative_reason_other,
+    reward_kano           = EXCLUDED.reward_kano,
+    monetization          = EXCLUDED.monetization,
+    age                   = EXCLUDED.age,
+    gender                = EXCLUDED.gender,
+    email                 = EXCLUDED.email,
+    email_choice          = EXCLUDED.email_choice,
+    persona_key           = EXCLUDED.persona_key,
+    updated_at            = now()
 RETURNING id, created_at, updated_at
 `
 
 type UpsertSurveyResponseParams struct {
-	ClientID          string  `json:"client_id"`
-	Completed         bool    `json:"completed"`
-	LastScreen        *string `json:"last_screen"`
-	Track             *string `json:"track"`
-	TrackOther        *string `json:"track_other"`
-	PivotImportance   *string `json:"pivot_importance"`
-	PivotSatisfaction *string `json:"pivot_satisfaction"`
-	Branch            *string `json:"branch"`
-	PositiveReason    *string `json:"positive_reason"`
-	NeutralReason     *string `json:"neutral_reason"`
-	NegativeReasons   []byte  `json:"negative_reasons"`
-	RewardKano        *string `json:"reward_kano"`
-	Monetization      *string `json:"monetization"`
-	Age               *string `json:"age"`
-	Gender            *string `json:"gender"`
-	Email             *string `json:"email"`
-	EmailChoice       *string `json:"email_choice"`
-	PersonaKey        *string `json:"persona_key"`
+	ClientID            string  `json:"client_id"`
+	Completed           bool    `json:"completed"`
+	LastScreen          *string `json:"last_screen"`
+	Track               *string `json:"track"`
+	TrackOther          *string `json:"track_other"`
+	PivotImportance     *string `json:"pivot_importance"`
+	PivotSatisfaction   *string `json:"pivot_satisfaction"`
+	Branch              *string `json:"branch"`
+	PositiveReasons     []byte  `json:"positive_reasons"`
+	NeutralReasons      []byte  `json:"neutral_reasons"`
+	NegativeReasons     []byte  `json:"negative_reasons"`
+	NegativeReasonOther *string `json:"negative_reason_other"`
+	RewardKano          *string `json:"reward_kano"`
+	Monetization        *string `json:"monetization"`
+	Age                 *string `json:"age"`
+	Gender              *string `json:"gender"`
+	Email               *string `json:"email"`
+	EmailChoice         *string `json:"email_choice"`
+	PersonaKey          *string `json:"persona_key"`
 }
 
 type UpsertSurveyResponseRow struct {
@@ -82,9 +84,10 @@ func (q *Queries) UpsertSurveyResponse(ctx context.Context, arg UpsertSurveyResp
 		arg.PivotImportance,
 		arg.PivotSatisfaction,
 		arg.Branch,
-		arg.PositiveReason,
-		arg.NeutralReason,
+		arg.PositiveReasons,
+		arg.NeutralReasons,
 		arg.NegativeReasons,
+		arg.NegativeReasonOther,
 		arg.RewardKano,
 		arg.Monetization,
 		arg.Age,

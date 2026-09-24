@@ -19,24 +19,32 @@ type SurveyHandler struct {
 // frontend posts one of these on every screen transition, not just at the end
 // — clientID is what makes this idempotent per respondent (see UpsertSurveyResponse).
 type surveyResponseInput struct {
-	ClientID          string   `json:"clientId"`
-	Completed         bool     `json:"completed"`
-	LastScreen        *string  `json:"lastScreen"`
-	Track             *string  `json:"track"`
-	TrackOther        *string  `json:"trackOther"`
-	PivotImportance   *string  `json:"pivotImportance"`
-	PivotSatisfaction *string  `json:"pivotSatisfaction"`
-	Branch            *string  `json:"branch"`
-	PositiveReason    *string  `json:"positiveReason"`
-	NeutralReason     *string  `json:"neutralReason"`
-	NegativeReasons   []string `json:"negativeReasons"`
-	RewardKano        *string  `json:"rewardKano"`
-	Monetization      *string  `json:"monetization"`
-	Age               *string  `json:"age"`
-	Gender            *string  `json:"gender"`
-	Email             *string  `json:"email"`
-	EmailChoice       *string  `json:"emailChoice"`
-	PersonaKey        *string  `json:"personaKey"`
+	ClientID            string   `json:"clientId"`
+	Completed           bool     `json:"completed"`
+	LastScreen          *string  `json:"lastScreen"`
+	Track               *string  `json:"track"`
+	TrackOther          *string  `json:"trackOther"`
+	PivotImportance     *string  `json:"pivotImportance"`
+	PivotSatisfaction   *string  `json:"pivotSatisfaction"`
+	Branch              *string  `json:"branch"`
+	PositiveReasons     []string `json:"positiveReasons"`
+	NeutralReasons      []string `json:"neutralReasons"`
+	NegativeReasons     []string `json:"negativeReasons"`
+	NegativeReasonOther *string  `json:"negativeReasonOther"`
+	RewardKano          *string  `json:"rewardKano"`
+	Monetization        *string  `json:"monetization"`
+	Age                 *string  `json:"age"`
+	Gender              *string  `json:"gender"`
+	Email               *string  `json:"email"`
+	EmailChoice         *string  `json:"emailChoice"`
+	PersonaKey          *string  `json:"personaKey"`
+}
+
+func marshalStringSlice(v []string) ([]byte, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return json.Marshal(v)
 }
 
 // Upsert stores (or updates) one survey response, keyed on the client-generated
@@ -55,35 +63,42 @@ func (h *SurveyHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var negativeReasons []byte
-	if in.NegativeReasons != nil {
-		encoded, err := json.Marshal(in.NegativeReasons)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, err)
-			return
-		}
-		negativeReasons = encoded
+	positiveReasons, err := marshalStringSlice(in.PositiveReasons)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	neutralReasons, err := marshalStringSlice(in.NeutralReasons)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	negativeReasons, err := marshalStringSlice(in.NegativeReasons)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
 	}
 
 	row, err := h.Queries.UpsertSurveyResponse(r.Context(), repository.UpsertSurveyResponseParams{
-		ClientID:          in.ClientID,
-		Completed:         in.Completed,
-		LastScreen:        in.LastScreen,
-		Track:             in.Track,
-		TrackOther:        in.TrackOther,
-		PivotImportance:   in.PivotImportance,
-		PivotSatisfaction: in.PivotSatisfaction,
-		Branch:            in.Branch,
-		PositiveReason:    in.PositiveReason,
-		NeutralReason:     in.NeutralReason,
-		NegativeReasons:   negativeReasons,
-		RewardKano:        in.RewardKano,
-		Monetization:      in.Monetization,
-		Age:               in.Age,
-		Gender:            in.Gender,
-		Email:             in.Email,
-		EmailChoice:       in.EmailChoice,
-		PersonaKey:        in.PersonaKey,
+		ClientID:            in.ClientID,
+		Completed:           in.Completed,
+		LastScreen:          in.LastScreen,
+		Track:               in.Track,
+		TrackOther:          in.TrackOther,
+		PivotImportance:     in.PivotImportance,
+		PivotSatisfaction:   in.PivotSatisfaction,
+		Branch:              in.Branch,
+		PositiveReasons:     positiveReasons,
+		NeutralReasons:      neutralReasons,
+		NegativeReasons:     negativeReasons,
+		NegativeReasonOther: in.NegativeReasonOther,
+		RewardKano:          in.RewardKano,
+		Monetization:        in.Monetization,
+		Age:                 in.Age,
+		Gender:              in.Gender,
+		Email:               in.Email,
+		EmailChoice:         in.EmailChoice,
+		PersonaKey:          in.PersonaKey,
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err)

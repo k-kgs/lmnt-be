@@ -63,27 +63,28 @@ type Streak struct {
 }
 
 type SurveyResponse struct {
-	ID                pgtype.UUID        `json:"id"`
-	Track             *string            `json:"track"`
-	TrackOther        *string            `json:"track_other"`
-	PivotImportance   *string            `json:"pivot_importance"`
-	PivotSatisfaction *string            `json:"pivot_satisfaction"`
-	Branch            *string            `json:"branch"`
-	PositiveReason    *string            `json:"positive_reason"`
-	NeutralReason     *string            `json:"neutral_reason"`
-	NegativeReasons   []byte             `json:"negative_reasons"`
-	RewardKano        *string            `json:"reward_kano"`
-	Monetization      *string            `json:"monetization"`
-	Age               *string            `json:"age"`
-	Gender            *string            `json:"gender"`
-	Email             *string            `json:"email"`
-	EmailChoice       *string            `json:"email_choice"`
-	PersonaKey        *string            `json:"persona_key"`
-	CreatedAt         pgtype.Timestamptz `json:"created_at"`
-	ClientID          string             `json:"client_id"`
-	Completed         bool               `json:"completed"`
-	LastScreen        *string            `json:"last_screen"`
-	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	ID                  pgtype.UUID        `json:"id"`
+	Track               *string            `json:"track"`
+	TrackOther          *string            `json:"track_other"`
+	PivotImportance     *string            `json:"pivot_importance"`
+	PivotSatisfaction   *string            `json:"pivot_satisfaction"`
+	Branch              *string            `json:"branch"`
+	NegativeReasons     []byte             `json:"negative_reasons"`
+	RewardKano          *string            `json:"reward_kano"`
+	Monetization        *string            `json:"monetization"`
+	Age                 *string            `json:"age"`
+	Gender              *string            `json:"gender"`
+	Email               *string            `json:"email"`
+	EmailChoice         *string            `json:"email_choice"`
+	PersonaKey          *string            `json:"persona_key"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+	ClientID            string             `json:"client_id"`
+	Completed           bool               `json:"completed"`
+	LastScreen          *string            `json:"last_screen"`
+	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
+	PositiveReasons     []byte             `json:"positive_reasons"`
+	NeutralReasons      []byte             `json:"neutral_reasons"`
+	NegativeReasonOther *string            `json:"negative_reason_other"`
 }
 
 type User struct {
