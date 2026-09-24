@@ -22,6 +22,7 @@ type Handlers struct {
 	Insight    *handler.InsightHandler
 	Community  *handler.CommunityHandler
 	Upload     *handler.UploadHandler
+	Survey     *handler.SurveyHandler
 }
 
 func New(h Handlers, queries *repository.Queries) http.Handler {
@@ -45,6 +46,7 @@ func New(h Handlers, queries *repository.Queries) http.Handler {
 		r.Post("/auth/login", h.Auth.Login)
 		r.Get("/challenges/{id}/leaderboard", h.Community.Leaderboard)
 		r.Get("/challenges/{id}/analytics", h.Community.Analytics) // aggregate/anonymized, no auth needed
+		r.Post("/survey-responses", h.Survey.Upsert)               // pre-launch waitlist survey, no auth required
 
 		// authenticated
 		r.Group(func(r chi.Router) {

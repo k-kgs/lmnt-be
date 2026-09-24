@@ -53,6 +53,7 @@ func main() {
 		Insight:    &handler.InsightHandler{Queries: queries},
 		Community:  &handler.CommunityHandler{Queries: queries},
 		Upload:     &handler.UploadHandler{Presigner: presigner},
+		Survey:     &handler.SurveyHandler{Queries: queries},
 	}
 
 	r := router.New(h, queries)
