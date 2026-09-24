@@ -13,16 +13,22 @@ import (
 
 const upsertSurveyResponse = `-- name: UpsertSurveyResponse :one
 INSERT INTO survey_responses (
-    client_id, completed, last_screen, track, track_other, pivot_importance, pivot_satisfaction, branch,
+    client_id, completed, last_screen, track, track_other,
+    tracking_tool, tracking_tool_other, tracking_satisfaction, tracking_app_feedback,
+    pivot_importance, pivot_satisfaction, branch,
     positive_reasons, neutral_reasons, negative_reasons, negative_reason_other, reward_kano,
     monetization, age, gender, email, email_choice, persona_key
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
 ON CONFLICT (client_id) DO UPDATE SET
     completed             = EXCLUDED.completed,
     last_screen           = EXCLUDED.last_screen,
     track                 = EXCLUDED.track,
     track_other           = EXCLUDED.track_other,
+    tracking_tool         = EXCLUDED.tracking_tool,
+    tracking_tool_other   = EXCLUDED.tracking_tool_other,
+    tracking_satisfaction = EXCLUDED.tracking_satisfaction,
+    tracking_app_feedback = EXCLUDED.tracking_app_feedback,
     pivot_importance      = EXCLUDED.pivot_importance,
     pivot_satisfaction    = EXCLUDED.pivot_satisfaction,
     branch                = EXCLUDED.branch,
@@ -42,25 +48,29 @@ RETURNING id, created_at, updated_at
 `
 
 type UpsertSurveyResponseParams struct {
-	ClientID            string  `json:"client_id"`
-	Completed           bool    `json:"completed"`
-	LastScreen          *string `json:"last_screen"`
-	Track               *string `json:"track"`
-	TrackOther          *string `json:"track_other"`
-	PivotImportance     *string `json:"pivot_importance"`
-	PivotSatisfaction   *string `json:"pivot_satisfaction"`
-	Branch              *string `json:"branch"`
-	PositiveReasons     []byte  `json:"positive_reasons"`
-	NeutralReasons      []byte  `json:"neutral_reasons"`
-	NegativeReasons     []byte  `json:"negative_reasons"`
-	NegativeReasonOther *string `json:"negative_reason_other"`
-	RewardKano          *string `json:"reward_kano"`
-	Monetization        *string `json:"monetization"`
-	Age                 *string `json:"age"`
-	Gender              *string `json:"gender"`
-	Email               *string `json:"email"`
-	EmailChoice         *string `json:"email_choice"`
-	PersonaKey          *string `json:"persona_key"`
+	ClientID             string  `json:"client_id"`
+	Completed            bool    `json:"completed"`
+	LastScreen           *string `json:"last_screen"`
+	Track                *string `json:"track"`
+	TrackOther           *string `json:"track_other"`
+	TrackingTool         *string `json:"tracking_tool"`
+	TrackingToolOther    *string `json:"tracking_tool_other"`
+	TrackingSatisfaction *string `json:"tracking_satisfaction"`
+	TrackingAppFeedback  *string `json:"tracking_app_feedback"`
+	PivotImportance      *string `json:"pivot_importance"`
+	PivotSatisfaction    *string `json:"pivot_satisfaction"`
+	Branch               *string `json:"branch"`
+	PositiveReasons      []byte  `json:"positive_reasons"`
+	NeutralReasons       []byte  `json:"neutral_reasons"`
+	NegativeReasons      []byte  `json:"negative_reasons"`
+	NegativeReasonOther  *string `json:"negative_reason_other"`
+	RewardKano           *string `json:"reward_kano"`
+	Monetization         *string `json:"monetization"`
+	Age                  *string `json:"age"`
+	Gender               *string `json:"gender"`
+	Email                *string `json:"email"`
+	EmailChoice          *string `json:"email_choice"`
+	PersonaKey           *string `json:"persona_key"`
 }
 
 type UpsertSurveyResponseRow struct {
@@ -81,6 +91,10 @@ func (q *Queries) UpsertSurveyResponse(ctx context.Context, arg UpsertSurveyResp
 		arg.LastScreen,
 		arg.Track,
 		arg.TrackOther,
+		arg.TrackingTool,
+		arg.TrackingToolOther,
+		arg.TrackingSatisfaction,
+		arg.TrackingAppFeedback,
 		arg.PivotImportance,
 		arg.PivotSatisfaction,
 		arg.Branch,

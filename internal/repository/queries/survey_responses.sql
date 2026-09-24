@@ -5,16 +5,22 @@
 -- respondent started". completed=false rows that never get updated again are
 -- exactly the drop-off data this exists to capture.
 INSERT INTO survey_responses (
-    client_id, completed, last_screen, track, track_other, pivot_importance, pivot_satisfaction, branch,
+    client_id, completed, last_screen, track, track_other,
+    tracking_tool, tracking_tool_other, tracking_satisfaction, tracking_app_feedback,
+    pivot_importance, pivot_satisfaction, branch,
     positive_reasons, neutral_reasons, negative_reasons, negative_reason_other, reward_kano,
     monetization, age, gender, email, email_choice, persona_key
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
 ON CONFLICT (client_id) DO UPDATE SET
     completed             = EXCLUDED.completed,
     last_screen           = EXCLUDED.last_screen,
     track                 = EXCLUDED.track,
     track_other           = EXCLUDED.track_other,
+    tracking_tool         = EXCLUDED.tracking_tool,
+    tracking_tool_other   = EXCLUDED.tracking_tool_other,
+    tracking_satisfaction = EXCLUDED.tracking_satisfaction,
+    tracking_app_feedback = EXCLUDED.tracking_app_feedback,
     pivot_importance      = EXCLUDED.pivot_importance,
     pivot_satisfaction    = EXCLUDED.pivot_satisfaction,
     branch                = EXCLUDED.branch,
